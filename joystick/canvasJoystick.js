@@ -11,6 +11,16 @@ let factor_y = rangeToFactor(rectJoy.height);
 let posJoy = setCenter(rectJoy);
 let vel = setVelStart();
 
+//ps3
+ps3_controller_connected = false;
+ps3_factor_x = rangeToFactor(1) / 2;
+ps3_factor_y = rangeToFactor(1) / 2;
+ps3_axis_id_x = 3;
+ps3_axis_id_y = 4;
+ps3_axis_pos_x = 0;
+ps3_axis_pos_y = 0;
+//
+
 canvasJoy.addEventListener("mousedown", inputStart, false);
 canvasJoy.addEventListener("mouseup", inputEnd, false);
 canvasJoy.addEventListener("mouseout", function() { mdown = false; }, false);
@@ -28,8 +38,7 @@ function inputStart() {
 }
 
 function inputEnd() {
-  posJoy.cx = 0
-  posJoy.cy = 0
+  posJoy = setCenter(rectJoy);
   moveCenter();
   mdown = false;
   vel.linearX = 0.0;
@@ -50,6 +59,7 @@ function inputMove(e) {
 function getMousePos(evt) {
   posJoy.cx =  Math.round(evt.clientX - rectJoy.left);
   posJoy.cy = Math.round(evt.clientY - rectJoy.top);
+  console.log('j cx:' + posJoy.cx + "j cy:" + posJoy.cy)
 }
 
 function getVel() {
@@ -92,8 +102,8 @@ function getVel() {
 
 function setCenter(rectJoy){
   var center = {
-    cx: Math.round(rectJoy.right/2),
-    cy: Math.round(rectJoy.bottom/2)
+    cx: Math.round(rectJoy.height/2),
+    cy: Math.round(rectJoy.width/2)
   }
   return center;
 }
@@ -116,6 +126,8 @@ function moveCenter(){
 
 function sendPos() {
   // here we would call an api or anything which should know the result
+  //console.log('ps3 x:' + ps3_axis_pos_x + ' ps3 y:' + ps3_axis_pos_y);
+  //onsole.log('j cx:' + posJoy.cx + "j cy:" + posJoy.cy)
   console.log("v x:" + vel.linearX + ",v Y:" + vel.linearY);
 }
 
@@ -134,7 +146,7 @@ function drawJoyField() {
   if(mdown === false){
     ctxJoy.beginPath();
     ctxJoy.arc(rectJoy.width/2,rectJoy.height/2,10,0,2*Math.PI);
-    ctxJoy.globalAlpha=0.5;disconnecthandler
+    ctxJoy.globalAlpha=0.5;
     ctxJoy.fillStyle = 'orange';
     ctxJoy.fill();
     ctxJoy.stroke();
@@ -148,8 +160,21 @@ function drawJoyField() {
   }
 }
 
+// -- ps3 -------------------------------------------------------------------------------------
+function ps3_connected(){
+  inputEnd();
+  mdown = true;
+}
+
+function ps3_disconnect(){
+  inputEnd();
+  mdown = false;
+}
 // -- game pad---------------------------------------------------------
 var fps = 20 // we use requestAnimationFrame in updateStatus
+var draw_interval = '';
+
+var center = setCenter(rectJoy);
 
 if (haveEvents) {
   window.addEventListener("gamepadconnected", connecthandler);
@@ -166,25 +191,26 @@ function connecthandler(e) {
   } else {
     console.log('unknow gamepad connected')
   }
-  
 }
 function disconnecthandler(e) {
   if(e.gamepad.id.includes('PLAYSTATION(R)3')){
     console.log("A gamepad disconnected:");
     console.log(e.gamepad);
+    clearInterval(draw_interval);
+    ps3_disconnect();
     removegamepad(e.gamepad);
   }
 }
-
-// --
 function addgamepad(gamepad) {
     controllers[gamepad.index] = gamepad;
+    ps3_controller_connected = true;
     requestAnimationFrame(updateStatus);
 }
-
 function removegamepad(gamepad) {
+  ps3_controller_connected = false;
   delete controllers[gamepad.index];
 }
+// --
 
 function updateStatus() {
   scangamepads();
@@ -206,27 +232,26 @@ function updateStatus() {
         if(i === ps3_axis_id_x){
           ps3_axis_pos_x = controller.axes[i].toFixed(2);
           ps3_axis_pos_x = Math.round(ps3_axis_pos_x * ps3_factor_x);
-          vel.linearX = ps3_axis_pos_x;
-          if (vel.linearX > rectJoy.width){ vel.linearX = rectJoy.width / 2}
-          posJoy.cx =  Math.round(ps3_axis_pos_x - rectJoy.left);
-          sendPos();
-          mdown = true;
-          drawJoyHandle();
+          if (ps3_factor_x > rectJoy.width){ ps3_axis_pos_x = rectJoy.width / 2}
+          
         }
         if(i === ps3_axis_id_y){
           ps3_axis_pos_y = controller.axes[i].toFixed(2);
-          ps3_axis_pos_y = ~Math.round(ps3_axis_pos_y * ps3_factor_y);
-          vel.linearY = ps3_axis_pos_y;
-          if (vel.linearY > rectJoy.height){ vel.linearY = rectJoy.height / 2}
-          posJoy.cy = Math.round(ps3_axis_pos_y - rectJoy.top);
-          sendPos();
-          mdown = true;
-          drawJoyHandle();
+          ps3_axis_pos_y = Math.round(ps3_axis_pos_y * ps3_factor_y);
+          if (ps3_axis_pos_y > rectJoy.height){ ps3_axis_pos_y = rectJoy.height / 2}
+          posJoy.cy = ps3_factor_y;
         }
       }
     }
   }
-  setTimeout(function(){ requestAnimationFrame(updateStatus); }, 1000/fps)
+  if(ps3_controller_connected === true){
+    posJoy.cx = center.cx + ps3_axis_pos_x;
+    posJoy.cy = center.cy + ps3_axis_pos_y;
+    getVel();
+    sendPos();
+    requestAnimationFrame(drawJoyHandle);
+    requestAnimationFrame(updateStatus);
+  }
 }
 
 function scangamepads() {
@@ -240,20 +265,4 @@ function scangamepads() {
       }
     }
   }
-}
-
-// -- ps3 -------------------------------------------------------------------------------------
-ps3_factor_x = rangeToFactor(1) / 2;
-ps3_factor_y = rangeToFactor(1) / 2;
-ps3_axis_id_x = 3;
-ps3_axis_id_y = 4;
-ps3_axis_pos_x = 0;
-ps3_axis_pos_y = 0;
-
-function ps3_connected(){
-  inputEnd();
-}
-
-function ps_disconnect(){
-  inputEnd();
 }
