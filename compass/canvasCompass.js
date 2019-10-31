@@ -1,6 +1,6 @@
 const canvasCompass = document.getElementById('cnvsCompass');
 try {
-  canvasCompass.getContext
+  let test = canvasCompass.getContext;
 }
 catch(err){
   let message = document.createElement("error");
@@ -11,7 +11,7 @@ const ctxCompass = canvasCompass.getContext('2d');
 const rectCompass = canvasCompass.getBoundingClientRect();
 ctxCompass.lineWidth = 1;
 ctxCompass.font = 'italic 8px sans-serif';
-ctxCompass.strokeStyle = '#000000'
+ctxCompass.strokeStyle = '#000000';
 //--------------------------------------------------------------------
 let bars_dist = Math.round(rectCompass.width/36);
 const bar_top_high = 12;
@@ -53,7 +53,7 @@ function draw_items(rose_value){
     return;
   }
   if( rose_value % 5 === 0) {
-    let bt = bar_top_high
+    let bt = bar_top_high;
     bar_pos = bar_pos + bars_dist;
     if( rose_value % 10 === 0) {
       ctxCompass.strokeText(rose_value, rectCompass.left + bar_pos - 4, bt - 4);
@@ -96,6 +96,7 @@ function draw_waypoint(wp_pos) {
   ctxCompass.fill();
   ctxCompass.stroke();
 }
+// leave in here, will be called from outside
 function rose_rotate(centr) {
   if(centr < 1 || centr > 360){
     return;
