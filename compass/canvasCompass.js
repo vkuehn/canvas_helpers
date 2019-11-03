@@ -21,19 +21,19 @@ const wp_shape = { 'width': 20, 'height': 20 };
 let bar_pos = 0;
 let compass = {
   'direction': 90,
-  'rose': [...Array(361).keys()].slice(1),
+  'rose': [...Array(360).keys()].slice(1),
   'waypoints': [30,70]
 };
-let gauge = [...Array(180).keys()].slice(1);
-
 
 function draw(){
   bar_pos = 0;
+  gauge = compass_fragment(compass.direction);
   draw_clean();
   draw_scala_frame();
-  gauge.forEach( (rose_value) => draw_items(rose_value));
+  gauge.forEach( (g_value) => draw_gauge_items(g_value));
   draw_center_bar();
 }
+
 function draw_scala_frame() {
   ctxCompass.beginPath();
   ctxCompass.moveTo(rectCompass.left, 0);
@@ -48,15 +48,13 @@ function draw_scala_frame() {
   ctxCompass.lineTo(rectCompass.width, rectCompass.height);
   ctxCompass.stroke();
 }
-function draw_items(rose_value){
-  if (compass.direction - 90 < rose_value && rose_value > compass.direction + 90 ){
-    return;
-  }
-  if( rose_value % 5 === 0) {
+
+function draw_gauge_items(item_postion){
+  if( item_postion % 5 === 0) {
     let bt = bar_top_high;
     bar_pos = bar_pos + bars_dist;
-    if( rose_value % 10 === 0) {
-      ctxCompass.strokeText(rose_value, rectCompass.left + bar_pos - 4, bt - 4);
+    if( item_postion % 10 === 0) {
+      ctxCompass.strokeText(item_postion, rectCompass.left + bar_pos - 4, bt - 4);
     } else {
       bt = bar_top_low;
     }
@@ -65,13 +63,14 @@ function draw_items(rose_value){
     ctxCompass.lineTo(rectCompass.left + bar_pos , rectCompass.height);
     ctxCompass.stroke();
   }
-  if(compass.waypoints.includes(rose_value)){
+  if(compass.waypoints.includes(item_postion)){
     draw_waypoint(bar_pos);
   }
-  if(compass.direction === rose_value){
+  if(gauge[90] === item_postion){
     draw_center_bar(bar_pos);
   }
 }
+
 function draw_center_bar(center_pos){
   center_pos = center_pos + bars_dist - 2; // for some reason we nee that correction
   ctxCompass.beginPath();
@@ -83,9 +82,11 @@ function draw_center_bar(center_pos){
   ctxCompass.lineWidth = 1;
   ctxCompass.strokeStyle = '#000000'
 }
+
 function draw_clean(){
   ctxCompass.clearRect(0, 0, rectCompass.width,rectCompass.height);
 }
+
 function draw_waypoint(wp_pos) {
   ctxCompass.beginPath();
   ctxCompass.moveTo(wp_pos,bar_top_high);
@@ -96,37 +97,36 @@ function draw_waypoint(wp_pos) {
   ctxCompass.fill();
   ctxCompass.stroke();
 }
-// leave in here, will be called from outside
-function rose_rotate(centr) {
-  if(centr < 1 || centr > 360){
+
+function compass_fragment(center) {
+  if(center < 1 || center > 360){
     return;
   }
-  let arr = compass.rose;
-  let arr_1 = [];
-  let arr_2 = [];
+  let _rose = compass.rose;
   let result = [];
 
-  let center = centr ||compass.direction;
-  compass.direction = center;
-
   if(center > 90 && center < 270){
-    arr_1 = arr.slice(center - 90,center);
-    arr_2 = arr.slice(center,center + 90);
+    arr_1 = _rose.slice(center - 90,center);
+    arr_2 = _rose.slice(center,center + 90);
+    result = arr_1.concat(arr_2);
   }
   if(center <= 90){
-    arr_1 = arr.slice(0,center);
-    arr_2 = arr.slice(center,center + 90);
+    _n = 90  - center;
+    arr_1 = _rose.slice(360 - _n,360);
+    arr_2 = _rose.slice(0,center);
+    arr_3 = _rose.slice(center,center + 90);
+    result = arr_1.concat(arr_2);
+    result = result.concat(arr_3);
   }
   if(center >= 270){
-    arr_1 = arr.slice(0, 90);
-    arr_2 = arr.slice(center - 90,arr.length);
-  }
-  if(center < 180) {
+    _n = center - 90;
+    arr_1 = _rose.slice(_n , 360);
+    _n = center + 90;
+    _n = _n - 360
+    arr_2 = _rose.slice(0,_n);
     result = arr_1.concat(arr_2);
-  } else {
-    result = arr_2.concat(arr_1);
   }
-  gauge = result;
-  draw();
+  return result;
 }
+
 draw();
