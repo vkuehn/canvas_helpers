@@ -21,9 +21,10 @@ const wp_shape = { 'width': 20, 'height': 20 };
 let bar_pos = 0;
 let compass = {
   'direction': 90,
-  'rose': [...Array(360).keys()].slice(1),
+  'rose': [...Array(361).keys()].slice(1),
   'waypoints': [30,70]
 };
+let gauge = compass_fragment(compass.direction);
 
 function draw(){
   bar_pos = 0;
@@ -49,12 +50,12 @@ function draw_scala_frame() {
   ctxCompass.stroke();
 }
 
-function draw_gauge_items(item_postion){
-  if( item_postion % 5 === 0) {
-    let bt = bar_top_high;
+function draw_gauge_items(item_value){
+  let bt = bar_top_high;
+  if( item_value % 5 === 0) {
     bar_pos = bar_pos + bars_dist;
-    if( item_postion % 10 === 0) {
-      ctxCompass.strokeText(item_postion, rectCompass.left + bar_pos - 4, bt - 4);
+    if( item_value % 10 === 0) {
+      ctxCompass.strokeText(item_value, rectCompass.left + bar_pos - 4, bt - 4);
     } else {
       bt = bar_top_low;
     }
@@ -63,10 +64,10 @@ function draw_gauge_items(item_postion){
     ctxCompass.lineTo(rectCompass.left + bar_pos , rectCompass.height);
     ctxCompass.stroke();
   }
-  if(compass.waypoints.includes(item_postion)){
+  if(compass.waypoints.includes(item_value)){
     draw_waypoint(bar_pos);
   }
-  if(gauge[90] === item_postion){
+  if(gauge[90] === item_value){
     draw_center_bar(bar_pos);
   }
 }
@@ -99,32 +100,37 @@ function draw_waypoint(wp_pos) {
 }
 
 function compass_fragment(center) {
-  if(center < 1 || center > 360){
+  if(center < 0 || center > 360){
     return;
   }
   let _rose = compass.rose;
+  
+  let _arr_1 = [];
+  let _arr_2 = [];
+  let _arr_3 = [];
+  let _n = 0;
   let result = [];
 
   if(center > 90 && center < 270){
-    arr_1 = _rose.slice(center - 90,center);
-    arr_2 = _rose.slice(center,center + 90);
-    result = arr_1.concat(arr_2);
+    _arr_1 = _rose.slice(center - 90,center);
+    _arr_2 = _rose.slice(center,center + 90);
+    result = _arr_1.concat(_arr_2);
   }
   if(center <= 90){
     _n = 90  - center;
-    arr_1 = _rose.slice(360 - _n,360);
-    arr_2 = _rose.slice(0,center);
-    arr_3 = _rose.slice(center,center + 90);
-    result = arr_1.concat(arr_2);
-    result = result.concat(arr_3);
+    _arr_1 = _rose.slice(360 - _n,360);
+    _arr_2 = _rose.slice(0,center);
+    _arr_3 = _rose.slice(center,center + 90);
+    result = _arr_1.concat(_arr_2);
+    result = result.concat(_arr_3);
   }
   if(center >= 270){
     _n = center - 90;
-    arr_1 = _rose.slice(_n , 360);
+    _arr_1 = _rose.slice(_n , 360);
     _n = center + 90;
-    _n = _n - 360
-    arr_2 = _rose.slice(0,_n);
-    result = arr_1.concat(arr_2);
+    _n = _n - 360;
+    _arr_2 = _rose.slice(0,_n);
+    result = _arr_1.concat(_arr_2);
   }
   return result;
 }
