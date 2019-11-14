@@ -21,6 +21,7 @@ const wp_shape = { 'width': 20, 'height': 20 };
 let bar_pos = 0;
 let compass = {
   'direction': 90,
+  'draw': function() { draw()},
   'rose': [...Array(361).keys()].slice(1),
   'waypoints': [30,70]
 };
