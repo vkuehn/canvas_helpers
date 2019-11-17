@@ -1,6 +1,6 @@
 const canvasCompass = document.getElementById('cnvsCompass');
 try {
-  canvasCompass.getContext
+  let test = canvasCompass.getContext;
 }
 catch(err){
   let message = document.createElement("error");
@@ -11,7 +11,7 @@ const ctxCompass = canvasCompass.getContext('2d');
 const rectCompass = canvasCompass.getBoundingClientRect();
 ctxCompass.lineWidth = 1;
 ctxCompass.font = 'italic 8px sans-serif';
-ctxCompass.strokeStyle = '#000000'
+ctxCompass.strokeStyle = '#000000';
 //--------------------------------------------------------------------
 let bars_dist = Math.round(rectCompass.width/36);
 const bar_top_high = 12;
@@ -24,16 +24,17 @@ let compass = {
   'rose': [...Array(361).keys()].slice(1),
   'waypoints': [30,70]
 };
-let gauge = [...Array(180).keys()].slice(1);
-
+let gauge = compass_fragment(compass.direction);
 
 function draw(){
   bar_pos = 0;
+  gauge = compass_fragment(compass.direction);
   draw_clean();
   draw_scala_frame();
-  gauge.forEach( (rose_value) => draw_items(rose_value));
+  gauge.forEach( (g_value) => draw_gauge_items(g_value));
   draw_center_bar();
 }
+
 function draw_scala_frame() {
   ctxCompass.beginPath();
   ctxCompass.moveTo(rectCompass.left, 0);
@@ -48,15 +49,13 @@ function draw_scala_frame() {
   ctxCompass.lineTo(rectCompass.width, rectCompass.height);
   ctxCompass.stroke();
 }
-function draw_items(rose_value){
-  if (compass.direction - 90 < rose_value && rose_value > compass.direction + 90 ){
-    return;
-  }
-  if( rose_value % 5 === 0) {
-    let bt = bar_top_high
+
+function draw_gauge_items(item_value){
+  let bt = bar_top_high;
+  if( item_value % 5 === 0) {
     bar_pos = bar_pos + bars_dist;
-    if( rose_value % 10 === 0) {
-      ctxCompass.strokeText(rose_value, rectCompass.left + bar_pos - 4, bt - 4);
+    if( item_value % 10 === 0) {
+      ctxCompass.strokeText(item_value, rectCompass.left + bar_pos - 4, bt - 4);
     } else {
       bt = bar_top_low;
     }
@@ -65,13 +64,14 @@ function draw_items(rose_value){
     ctxCompass.lineTo(rectCompass.left + bar_pos , rectCompass.height);
     ctxCompass.stroke();
   }
-  if(compass.waypoints.includes(rose_value)){
+  if(compass.waypoints.includes(item_value)){
     draw_waypoint(bar_pos);
   }
-  if(compass.direction === rose_value){
+  if(gauge[90] === item_value){
     draw_center_bar(bar_pos);
   }
 }
+
 function draw_center_bar(center_pos){
   center_pos = center_pos + bars_dist - 2; // for some reason we nee that correction
   ctxCompass.beginPath();
@@ -83,9 +83,11 @@ function draw_center_bar(center_pos){
   ctxCompass.lineWidth = 1;
   ctxCompass.strokeStyle = '#000000'
 }
+
 function draw_clean(){
   ctxCompass.clearRect(0, 0, rectCompass.width,rectCompass.height);
 }
+
 function draw_waypoint(wp_pos) {
   ctxCompass.beginPath();
   ctxCompass.moveTo(wp_pos,bar_top_high);
@@ -96,36 +98,41 @@ function draw_waypoint(wp_pos) {
   ctxCompass.fill();
   ctxCompass.stroke();
 }
-function rose_rotate(centr) {
-  if(centr < 1 || centr > 360){
+
+function compass_fragment(center) {
+  if(center < 0 || center > 360){
     return;
   }
-  let arr = compass.rose;
-  let arr_1 = [];
-  let arr_2 = [];
+  let _rose = compass.rose;
+  
+  let _arr_1 = [];
+  let _arr_2 = [];
+  let _arr_3 = [];
+  let _n = 0;
   let result = [];
 
-  let center = centr ||compass.direction;
-  compass.direction = center;
-
   if(center > 90 && center < 270){
-    arr_1 = arr.slice(center - 90,center);
-    arr_2 = arr.slice(center,center + 90);
+    _arr_1 = _rose.slice(center - 90,center);
+    _arr_2 = _rose.slice(center,center + 90);
+    result = _arr_1.concat(_arr_2);
   }
   if(center <= 90){
-    arr_1 = arr.slice(0,center);
-    arr_2 = arr.slice(center,center + 90);
+    _n = 90  - center;
+    _arr_1 = _rose.slice(360 - _n,360);
+    _arr_2 = _rose.slice(0,center);
+    _arr_3 = _rose.slice(center,center + 90);
+    result = _arr_1.concat(_arr_2);
+    result = result.concat(_arr_3);
   }
   if(center >= 270){
-    arr_1 = arr.slice(0, 90);
-    arr_2 = arr.slice(center - 90,arr.length);
+    _n = center - 90;
+    _arr_1 = _rose.slice(_n , 360);
+    _n = center + 90;
+    _n = _n - 360;
+    _arr_2 = _rose.slice(0,_n);
+    result = _arr_1.concat(_arr_2);
   }
-  if(center < 180) {
-    result = arr_1.concat(arr_2);
-  } else {
-    result = arr_2.concat(arr_1);
-  }
-  gauge = result;
-  draw();
+  return result;
 }
+
 draw();
