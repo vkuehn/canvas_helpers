@@ -12,13 +12,13 @@ let posJoy = setCenter(rectJoy);
 let vel = setVelStart();
 
 //ps3
-ps3_controller_connected = false;
-ps3_factor_x = rangeToFactor(1) / 2;
-ps3_factor_y = rangeToFactor(1) / 2;
-ps3_axis_id_x = 3;
-ps3_axis_id_y = 4;
-ps3_axis_pos_x = 0;
-ps3_axis_pos_y = 0;
+let ps3_controller_connected = false;
+let ps3_factor_x = rangeToFactor(1) / 2;
+let ps3_factor_y = rangeToFactor(1) / 2;
+let ps3_axis_id_x = 3;
+let ps3_axis_id_y = 4;
+let ps3_axis_pos_x = 0;
+let ps3_axis_pos_y = 0;
 //
 
 canvasJoy.addEventListener("mousedown", inputStart, false);
@@ -51,8 +51,8 @@ function inputMove(e) {
   if(mdown) {
     getMousePos(e);
     getVel();
+    drawJoyField();
     sendPos();
-    drawJoyHandle();
   }
 }
 
@@ -77,8 +77,8 @@ function getVel() {
   }
   if (vel.linearX > rectJoy.width){ vel.linearX = rectJoy.width / 2}
   if (vel.linearY > rectJoy.height){ vel.linearY = rectJoy.height / 2}
-  vel.linearX = vel.linearX * factor_x
-  vel.linearY = vel.linearY * factor_y
+  vel.linearX = vel.linearX * factor_x;
+  vel.linearY = vel.linearY * factor_y;
 }
 
 /**
@@ -90,26 +90,24 @@ function getVel() {
   * 200 -> 0.5
   * 1 -> 100
   */
- function rangeToFactor(max_value){
+function rangeToFactor(max_value){
+  let factor = 100;
   if(max_value > 1){
-      let factor = 0;
-      factor = 100 / max_value;
-      return factor;
+      factor = factor / max_value;
   }
-  return 100;
-
+  return factor;
 }
 
 function setCenter(rectJoy){
-  var center = {
+  let new_center = {
     cx: Math.round(rectJoy.height/2),
     cy: Math.round(rectJoy.width/2)
-  }
-  return center;
+  };
+  return new_center;
 }
 
 function setVelStart(){
-  var vel = {
+  let vel_start = {
       linearX: posJoy.cx,
       linearY: posJoy.cy,
       linearZ: 0.0,
@@ -117,7 +115,7 @@ function setVelStart(){
       angularY: 0.0,
       angularZ: 0.0
   };
-  return vel;
+  return vel_start;
 }
 
 function moveCenter(){
@@ -131,12 +129,8 @@ function sendPos() {
   console.log("v x:" + vel.linearX + ",v Y:" + vel.linearY);
 }
 
-function drawJoyHandle() {
-  ctxJoy.clearRect(0, 0, rectJoy.width, rectJoy.height);
-  drawJoyField();
-}
-
 function drawJoyField() {
+  ctxJoy.clearRect(0, 0, rectJoy.width, rectJoy.height);
   ctxJoy.beginPath();
   ctxJoy.arc(rectJoy.width/2,rectJoy.height/2,25,0,2*Math.PI);
   ctxJoy.stroke();
@@ -171,54 +165,54 @@ function ps3_disconnect(){
   mdown = false;
 }
 // -- game pad---------------------------------------------------------
-var fps = 20 // we use requestAnimationFrame in updateStatus
-var draw_interval = '';
+let fps = 20 // we use requestAnimationFrame in updateStatus
+let draw_interval = '';
 
-var center = setCenter(rectJoy);
+let center = setCenter(rectJoy);
 
 if (haveEvents) {
-  window.addEventListener("gamepadconnected", connecthandler);
-  window.addEventListener("gamepaddisconnected", disconnecthandler);
+  window.addEventListener("gamepadconnected", connectHandler);
+  window.addEventListener("gamepaddisconnected", disconnectHandler);
 }
 
 // -- handlers
-function connecthandler(e) {
+function connectHandler(e) {
   if(e.gamepad.id.includes('PLAYSTATION(R)3')){
     console.log("A gamepad connected:");
     console.log(e.gamepad);
     ps3_connected();
-    addgamepad(e.gamepad);
+    addGamepad(e.gamepad);
   } else {
     console.log('unknow gamepad connected')
   }
 }
-function disconnecthandler(e) {
+function disconnectHandler(e) {
   if(e.gamepad.id.includes('PLAYSTATION(R)3')){
     console.log("A gamepad disconnected:");
     console.log(e.gamepad);
     clearInterval(draw_interval);
     ps3_disconnect();
-    removegamepad(e.gamepad);
+    removeGamepad(e.gamepad);
   }
 }
-function addgamepad(gamepad) {
+function addGamepad(gamepad) {
     controllers[gamepad.index] = gamepad;
     ps3_controller_connected = true;
     requestAnimationFrame(updateStatus);
 }
-function removegamepad(gamepad) {
+function removeGamepad(gamepad) {
   ps3_controller_connected = false;
   delete controllers[gamepad.index];
 }
 // --
 
 function updateStatus() {
-  scangamepads();
+  scanGamepads();
   for (j in controllers) {
-    var controller = controllers[j];
-    for (var i=0; i<controller.buttons.length; i++) {
-      var val = controller.buttons[i];
-      var pressed = val == 1.0;
+    let controller = controllers[j];
+    for (let i=0; i<controller.buttons.length; i++) {
+      let val = controller.buttons[i];
+      let pressed = val == 1.0;
       if (typeof(val) == "object") {
         pressed = val.pressed;
         val = val.value;
@@ -227,7 +221,7 @@ function updateStatus() {
         console.log("button" + [i] + " pressed " + val);
       }
     }
-    for (var i=0; i<controller.axes.length; i++) {
+    for (let i=0; i<controller.axes.length; i++) {
       if (controller.axes[i] != 0.0) {
         if(i === ps3_axis_id_x){
           ps3_axis_pos_x = controller.axes[i].toFixed(2);
@@ -249,17 +243,17 @@ function updateStatus() {
     posJoy.cy = center.cy + ps3_axis_pos_y;
     getVel();
     sendPos();
-    requestAnimationFrame(drawJoyHandle);
+    requestAnimationFrame(drawJoyField);
     requestAnimationFrame(updateStatus);
   }
 }
 
-function scangamepads() {
-  var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : []);
-  for (var i = 0; i < gamepads.length; i++) {
+function scanGamepads() {
+  let gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : []);
+  for (let i = 0; i < gamepads.length; i++) {
     if (gamepads[i]) {
       if (!(gamepads[i].index in controllers)) {
-        addgamepad(gamepads[i]);
+        addGamepad(gamepads[i]);
       } else {
         controllers[gamepads[i].index] = gamepads[i];
       }
