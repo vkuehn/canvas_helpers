@@ -33,27 +33,40 @@ canvasJoy.addEventListener("touchmove", inputMove, false);
 ctxJoy.lineWidth = 1;
 inputEnd();
 
+function goodPos() {
+    /* bad if joyPos is in las 10% i rectJoy */
+    if(posJoy.cx > rectJoy.width / 10 * 9){return false;}
+    if(posJoy.cy > rectJoy.width / 10 * 9){return false;}
+    if(posJoy.cx < 10){return false;}
+    if(posJoy.cy < 10){return false;}
+    return true;
+}
+
+function finaliseMove() {
+    drawJoyField();
+    sendPos();
+    if(!goodPos()){inputEnd();}
+}
+
 function inputStart() {
   mdown = true;
 }
 
 function inputEnd() {
   posJoy = setCenter(rectJoy);
-  moveCenter();
+  inputMove({ clientX: posJoy.cx, clientY: posJoy.cy});
   mdown = false;
   vel.linearX = 0.0;
   vel.linearY = 0.0;
-  drawJoyField();
-  sendPos();
+  finaliseMove();
 }
 
 function inputMove(e) {
   if(mdown) {
     getMousePos(e);
     getVel();
-    drawJoyField();
-    sendPos();
   }
+  finaliseMove();
 }
 
 function getMousePos(evt) {
@@ -116,10 +129,6 @@ function setVelStart(){
       angularZ: 0.0
   };
   return vel_start;
-}
-
-function moveCenter(){
-  inputMove({ clientX: posJoy.cx, clientY: posJoy.cy});
 }
 
 function sendPos() {
@@ -227,7 +236,7 @@ function updateStatus() {
           ps3_axis_pos_x = controller.axes[i].toFixed(2);
           ps3_axis_pos_x = Math.round(ps3_axis_pos_x * ps3_factor_x);
           if (ps3_factor_x > rectJoy.width){ ps3_axis_pos_x = rectJoy.width / 2}
-          
+
         }
         if(i === ps3_axis_id_y){
           ps3_axis_pos_y = controller.axes[i].toFixed(2);
