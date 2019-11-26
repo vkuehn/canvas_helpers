@@ -22,9 +22,9 @@ let ps3_axis_pos_y = 0;
 //
 
 canvasJoy.addEventListener("mousedown", inputStart, false);
-canvasJoy.addEventListener("mouseup", inputEnd, false);
-canvasJoy.addEventListener("mouseout", function() { mdown = false; }, false);
 canvasJoy.addEventListener('mousemove', inputMove, false);
+canvasJoy.addEventListener("mouseout", inputEnd, false);
+canvasJoy.addEventListener("mouseup", inputEnd, false);
 canvasJoy.addEventListener("touchstart", inputStart, false);
 canvasJoy.addEventListener("touchend", inputEnd, false);
 canvasJoy.addEventListener("touchmove", inputMove, false);
@@ -34,7 +34,7 @@ ctxJoy.lineWidth = 1;
 inputEnd();
 
 function goodPos() {
-    /* bad if joyPos is in las 10% i rectJoy */
+    /* bad if joyPos is in las 10% in rectJoy */
     if(posJoy.cx > rectJoy.width / 10 * 9){return false;}
     if(posJoy.cy > rectJoy.width / 10 * 9){return false;}
     if(posJoy.cx < 10){return false;}
@@ -45,7 +45,6 @@ function goodPos() {
 function finaliseMove() {
     drawJoyField();
     sendPos();
-    if(!goodPos()){inputEnd();}
 }
 
 function inputStart() {
@@ -63,8 +62,11 @@ function inputEnd() {
 
 function inputMove(e) {
   if(mdown) {
+    if(!goodPos()) { inputEnd(); }
     getMousePos(e);
     getVel();
+    sendPos();
+    drawJoyField();
   }
   finaliseMove();
 }
@@ -72,7 +74,7 @@ function inputMove(e) {
 function getMousePos(evt) {
   posJoy.cx =  Math.round(evt.clientX - rectJoy.left);
   posJoy.cy = Math.round(evt.clientY - rectJoy.top);
-  console.log('j cx:' + posJoy.cx + "j cy:" + posJoy.cy)
+  // console.log('j cx:' + posJoy.cx + "j cy:" + posJoy.cy)
 }
 
 function getVel() {
@@ -213,7 +215,6 @@ function removeGamepad(gamepad) {
   ps3_controller_connected = false;
   delete controllers[gamepad.index];
 }
-// --
 
 function updateStatus() {
   scanGamepads();
