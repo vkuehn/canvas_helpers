@@ -19,7 +19,10 @@ let ps3_axis_id_x = 3;
 let ps3_axis_id_y = 4;
 let ps3_axis_pos_x = 0;
 let ps3_axis_pos_y = 0;
-//
+// -- game pad---------------------------------------------------------
+let fps = 20 // we use requestAnimationFrame in updateStatus
+let draw_interval = '';
+
 
 canvasJoy.addEventListener("mousedown", inputStart, false);
 canvasJoy.addEventListener('mousemove', inputMove, false);
@@ -74,7 +77,6 @@ function inputMove(e) {
 function getMousePos(evt) {
   posJoy.cx =  Math.round(evt.clientX - rectJoy.left);
   posJoy.cy = Math.round(evt.clientY - rectJoy.top);
-  // console.log('j cx:' + posJoy.cx + "j cy:" + posJoy.cy)
 }
 
 function getVel() {
@@ -98,7 +100,7 @@ function getVel() {
 
 /**
   * we always want to be between 0 and 100.
-  * there we return a factor to calculate a number within the range 0 - 100
+  * so we return a factor to calculate a number within the range 0 - 100
   * examples
   * 50 -> 2
   * 100 -> 1
@@ -138,6 +140,7 @@ function sendPos() {
   //console.log('ps3 x:' + ps3_axis_pos_x + ' ps3 y:' + ps3_axis_pos_y);
   //onsole.log('j cx:' + posJoy.cx + "j cy:" + posJoy.cy)
   console.log("v x:" + vel.linearX + ",v Y:" + vel.linearY);
+  try { ws.send("{ \"component\": \"base\", \"left\": " + vel.linearX + ", \"right\": " + vel.linearX + " }\r"); } catch (e){}
 }
 
 function drawJoyField() {
@@ -175,20 +178,10 @@ function ps3_disconnect(){
   inputEnd();
   mdown = false;
 }
-// -- game pad---------------------------------------------------------
-let fps = 20 // we use requestAnimationFrame in updateStatus
-let draw_interval = '';
 
-let center = setCenter(rectJoy);
-
-if (haveEvents) {
-  window.addEventListener("gamepadconnected", connectHandler);
-  window.addEventListener("gamepaddisconnected", disconnectHandler);
-}
-
-// -- handlers
+// -- ps3 handlers ------------------------------
 function connectHandler(e) {
-  if(e.gamepad.id.includes('PLAYSTATION(R)3')){
+  if(e.gamepad.id.includes('GamePad')){
     console.log("A gamepad connected:");
     console.log(e.gamepad);
     ps3_connected();
@@ -198,7 +191,7 @@ function connectHandler(e) {
   }
 }
 function disconnectHandler(e) {
-  if(e.gamepad.id.includes('PLAYSTATION(R)3')){
+  if(e.gamepad.id.includes('GamePad')){
     console.log("A gamepad disconnected:");
     console.log(e.gamepad);
     clearInterval(draw_interval);
@@ -269,4 +262,11 @@ function scanGamepads() {
       }
     }
   }
+}
+
+let center = setCenter(rectJoy);
+
+if (haveEvents) {
+  window.addEventListener("gamepadconnected", connectHandler);
+  window.addEventListener("gamepaddisconnected", disconnectHandler);
 }
