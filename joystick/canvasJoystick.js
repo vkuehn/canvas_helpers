@@ -2,8 +2,11 @@ const canvasJoy = document.getElementById("cnvsJoy");
 const ctxJoy = canvasJoy.getContext("2d");
 const rectJoy = canvasJoy.getBoundingClientRect();
 
+let color_fillstile = 'orange'
 let controllers = {};
 let debug = false;
+let draw_interval = '';
+let fps = 20              // we use requestAnimationFrame in updateStatus
 let mdown = false;
 
 
@@ -24,8 +27,6 @@ let ps3_axis_pos_x = 0;
 let ps3_axis_pos_y = 0;
 
 // -- Animation Frame
-let fps = 20 // we use requestAnimationFrame in updateStatus
-let draw_interval = '';
 
 // -------------- Start -------------------------------------
 ctxJoy.lineWidth = 1;
@@ -53,14 +54,14 @@ function drawJoyField() {
     ctxJoy.beginPath();
     ctxJoy.arc(rectJoy.width/2,rectJoy.height/2,10,0,2*Math.PI);
     ctxJoy.globalAlpha=0.5;
-    ctxJoy.fillStyle = 'orange';
+    ctxJoy.fillStyle = color_fillstile;
     ctxJoy.fill();
     ctxJoy.stroke();
   }else{
     ctxJoy.beginPath();
     ctxJoy.arc(posJoy.cx, posJoy.cy, 10, 0, 2 * Math.PI, false);
     ctxJoy.globalAlpha=1.0;
-    ctxJoy.fillStyle = 'orange';
+    ctxJoy.fillStyle = color_fillstile;
     ctxJoy.fill();
     ctxJoy.stroke();
   }
