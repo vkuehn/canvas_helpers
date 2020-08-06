@@ -3,15 +3,18 @@ const ctxJoy = canvasJoy.getContext("2d");
 const rectJoy = canvasJoy.getBoundingClientRect();
 
 let controllers = {};
+let debug = false;
 let mdown = false;
 
+
+// --- canvas and gamepad init
 let haveEvents = 'GamepadEvent' in window;
 let factor_x = rangeToFactor(rectJoy.width);
 let factor_y = rangeToFactor(rectJoy.height);
 let posJoy = setCenter(rectJoy);
 let vel = setVelStart();
 
-//ps3
+// -- ps3 object for gamepad handling
 let ps3_controller_connected = false;
 let ps3_factor_x = rangeToFactor(1) / 2;
 let ps3_factor_y = rangeToFactor(1) / 2;
@@ -19,35 +22,52 @@ let ps3_axis_id_x = 3;
 let ps3_axis_id_y = 4;
 let ps3_axis_pos_x = 0;
 let ps3_axis_pos_y = 0;
-// -- game pad---------------------------------------------------------
+
+// -- Animation Frame
 let fps = 20 // we use requestAnimationFrame in updateStatus
 let draw_interval = '';
 
+// -------------- Start -------------------------------------
+ctxJoy.lineWidth = 1;
 
 canvasJoy.addEventListener("mousedown", inputStart, false);
 canvasJoy.addEventListener('mousemove', inputMove, false);
-canvasJoy.addEventListener("mouseout", inputEnd, false);
+canvasJoy.addEventListener("mouseout", inputOutside, false);
 canvasJoy.addEventListener("mouseup", inputEnd, false);
 canvasJoy.addEventListener("touchstart", inputStart, false);
 canvasJoy.addEventListener("touchend", inputEnd, false);
 canvasJoy.addEventListener("touchmove", inputMove, false);
 
-/* first run time set defaults also */
-ctxJoy.lineWidth = 1;
+
 inputEnd();
 
-function goodPos() {
-    /* bad if joyPos is in las 10% in rectJoy */
-    if(posJoy.cx > rectJoy.width / 10 * 9){return false;}
-    if(posJoy.cy > rectJoy.width / 10 * 9){return false;}
-    if(posJoy.cx < 10){return false;}
-    if(posJoy.cy < 10){return false;}
-    return true;
+function drawJoyField() {
+  ctxJoy.clearRect(0, 0, rectJoy.width, rectJoy.height);
+  ctxJoy.beginPath();
+  ctxJoy.arc(rectJoy.width/2,rectJoy.height/2,25,0,2*Math.PI);
+  ctxJoy.stroke();
+  ctxJoy.beginPath();
+  ctxJoy.arc(rectJoy.width/2,rectJoy.height/2,40,0,2*Math.PI);
+  ctxJoy.stroke();
+  if(mdown === false){
+    ctxJoy.beginPath();
+    ctxJoy.arc(rectJoy.width/2,rectJoy.height/2,10,0,2*Math.PI);
+    ctxJoy.globalAlpha=0.5;
+    ctxJoy.fillStyle = 'orange';
+    ctxJoy.fill();
+    ctxJoy.stroke();
+  }else{
+    ctxJoy.beginPath();
+    ctxJoy.arc(posJoy.cx, posJoy.cy, 10, 0, 2 * Math.PI, false);
+    ctxJoy.globalAlpha=1.0;
+    ctxJoy.fillStyle = 'orange';
+    ctxJoy.fill();
+    ctxJoy.stroke();
+  }
 }
 
 function finaliseMove() {
     drawJoyField();
-    sendPos();
 }
 
 function inputStart() {
@@ -65,7 +85,6 @@ function inputEnd() {
 
 function inputMove(e) {
   if(mdown) {
-    if(!goodPos()) { inputEnd(); }
     getMousePos(e);
     getVel();
     sendPos();
@@ -73,6 +92,13 @@ function inputMove(e) {
   }
   finaliseMove();
 }
+
+function inputOutside() {
+  if (debug) {
+    console.log('out at ' + posJoy.cx + ' ' + posJoy.cy);
+  }
+}
+
 
 function getMousePos(evt) {
   posJoy.cx =  Math.round(evt.clientX - rectJoy.left);
@@ -137,34 +163,18 @@ function setVelStart(){
 
 function sendPos() {
   // here we would call an api or anything which should know the result
-  //console.log('ps3 x:' + ps3_axis_pos_x + ' ps3 y:' + ps3_axis_pos_y);
-  //onsole.log('j cx:' + posJoy.cx + "j cy:" + posJoy.cy)
-  console.log("v x:" + vel.linearX + ",v Y:" + vel.linearY);
-  try { ws.send("{ \"component\": \"base\", \"left\": " + vel.linearX + ", \"right\": " + vel.linearX + " }\r"); } catch (e){}
-}
-
-function drawJoyField() {
-  ctxJoy.clearRect(0, 0, rectJoy.width, rectJoy.height);
-  ctxJoy.beginPath();
-  ctxJoy.arc(rectJoy.width/2,rectJoy.height/2,25,0,2*Math.PI);
-  ctxJoy.stroke();
-  ctxJoy.beginPath();
-  ctxJoy.arc(rectJoy.width/2,rectJoy.height/2,40,0,2*Math.PI);
-  ctxJoy.stroke();
-  if(mdown === false){
-    ctxJoy.beginPath();
-    ctxJoy.arc(rectJoy.width/2,rectJoy.height/2,10,0,2*Math.PI);
-    ctxJoy.globalAlpha=0.5;
-    ctxJoy.fillStyle = 'orange';
-    ctxJoy.fill();
-    ctxJoy.stroke();
-  }else{
-    ctxJoy.beginPath();
-    ctxJoy.arc(posJoy.cx, posJoy.cy, 10, 0, 2 * Math.PI, false);
-    ctxJoy.globalAlpha=1.0;
-    ctxJoy.fillStyle = 'orange';
-    ctxJoy.fill();
-    ctxJoy.stroke();
+  // console.log('ps3 x:' + ps3_axis_pos_x + ' ps3 y:' + ps3_axis_pos_y);
+  // console.log('j cx:' + posJoy.cx + "j cy:" + posJoy.cy)
+  if (debug){
+    console.log("v x:" + vel.linearX + ",v Y:" + vel.linearY);  
+  }
+  
+  try { 
+    ws.send("{ \"component\": \"base\", \"left\": " + vel.linearX + ", \"right\": " + vel.linearX + " }\r"); 
+  } catch (e){
+    if (debug){
+      console.log(e.message);
+    }
   }
 }
 
