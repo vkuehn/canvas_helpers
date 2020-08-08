@@ -8,6 +8,8 @@ let debug = false;
 let draw_interval = '';
 let fps = 20              // we use requestAnimationFrame in updateStatus
 let mdown = false;
+let mOut = false;
+let mUp_globally = true;
 
 
 // --- canvas and gamepad init
@@ -36,11 +38,15 @@ ctxJoy.lineWidth = 1;
 canvasJoy.addEventListener("mousedown", inputStart, false);
 canvasJoy.addEventListener('mousemove', inputMove, false);
 canvasJoy.addEventListener("mouseout", inputOutside, false);
-canvasJoy.addEventListener("mouseup", inputEnd, false);
+if (mUp_globally){
+  window.addEventListener('mouseup',inputEnd, false);
+  canvasJoy.addEventListener("mouseup", inputEnd, false);
+}else {
+  canvasJoy.addEventListener("mouseup", inputEnd, false);
+}
 canvasJoy.addEventListener("touchstart", inputStart, false);
 canvasJoy.addEventListener("touchend", inputEnd, false);
 canvasJoy.addEventListener("touchmove", inputMove, false);
-
 
 inputEnd();
 
@@ -69,10 +75,6 @@ function drawJoyField() {
   }
 }
 
-function finaliseMove() {
-    drawJoyField();
-}
-
 function inputStart() {
   mdown = true;
 }
@@ -83,7 +85,7 @@ function inputEnd() {
   mdown = false;
   vel.linearX = 0.0;
   vel.linearY = 0.0;
-  finaliseMove();
+  drawJoyField();
 }
 
 function inputMove(e) {
@@ -91,14 +93,16 @@ function inputMove(e) {
     getMousePos(e);
     getVel();
     sendPos();
-    drawJoyField();
   }
-  finaliseMove();
+  drawJoyField();
 }
 
 function inputOutside() {
   if (debug) {
     console.log('out at ' + posJoy.cx + ' ' + posJoy.cy);
+  }
+  if (mOut) {
+    inputEnd();
   }
 }
 
