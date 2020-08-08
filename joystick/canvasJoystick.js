@@ -2,7 +2,7 @@ const canvasJoy = document.getElementById("cnvsJoy");
 const ctxJoy = canvasJoy.getContext("2d");
 const rectJoy = canvasJoy.getBoundingClientRect();
 
-let color_fillstile = 'orange'
+let color_fill_style = 'orange'
 let controllers = {};
 let debug = false;
 let draw_interval = '';
@@ -62,14 +62,14 @@ function drawJoyField() {
     ctxJoy.beginPath();
     ctxJoy.arc(rectJoy.width/2,rectJoy.height/2,10,0,2*Math.PI);
     ctxJoy.globalAlpha=0.5;
-    ctxJoy.fillStyle = color_fillstile;
+    ctxJoy.fillStyle = color_fill_style;
     ctxJoy.fill();
     ctxJoy.stroke();
   }else{
     ctxJoy.beginPath();
     ctxJoy.arc(posJoy.cx, posJoy.cy, 10, 0, 2 * Math.PI, false);
     ctxJoy.globalAlpha=1.0;
-    ctxJoy.fillStyle = color_fillstile;
+    ctxJoy.fillStyle = color_fill_style;
     ctxJoy.fill();
     ctxJoy.stroke();
   }
@@ -204,7 +204,7 @@ function connectHandler(e) {
     ps3_connected();
     addGamepad(e.gamepad);
   } else {
-    console.log('unknow gamepad connected')
+    console.log('unknown gamepad connected')
   }
 }
 function disconnectHandler(e) {
