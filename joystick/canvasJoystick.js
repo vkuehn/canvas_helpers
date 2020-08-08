@@ -26,7 +26,9 @@ let ps3_axis_id_y = 4;
 let ps3_axis_pos_x = 0;
 let ps3_axis_pos_y = 0;
 
-// -- Animation Frame
+if (debug){
+  console.log('Start canvas Joystick')
+}
 
 // -------------- Start -------------------------------------
 ctxJoy.lineWidth = 1;
