@@ -133,7 +133,7 @@ function getVel() {
 
 /**
   * we always want to be between 0 and 100.
-  * so we return a factor to calculate a number within the range 0 - 100
+  * so we return a factor to calculate a number within the range 0 - 1
   * examples
   * 50 -> 2
   * 100 -> 1
@@ -159,11 +159,7 @@ function setCenter(rectJoy){
 function setVelStart(){
   let vel_start = {
       linearX: posJoy.cx,
-      linearY: posJoy.cy,
-      linearZ: 0.0,
-      angularX: 0.0,
-      angularY: 0.0,
-      angularZ: 0.0
+      linearY: posJoy.cy
   };
   return vel_start;
 }
@@ -177,7 +173,7 @@ function sendPos() {
   }
   
   try { 
-    ws.send("{ \"component\": \"base\", \"left\": " + vel.linearX + ", \"right\": " + vel.linearX + " }\r"); 
+    ws.send(JSON.stringify (vel)); 
   } catch (e){
     if (debug){
       console.log(e.message);
