@@ -1,6 +1,6 @@
-const canvasJoy = document.getElementById("cnvsJoy");
-const ctxJoy = canvasJoy.getContext("2d");
-const rectJoy = canvasJoy.getBoundingClientRect();
+const canvasJoystick = document.getElementById("cnvsJoy");
+const ctxJoy = canvasJoystick.getContext("2d");
+const rectJoy = canvasJoystick.getBoundingClientRect();
 
 let color_fill_style = 'orange'
 let controllers = {};
@@ -17,7 +17,7 @@ let haveEvents = 'GamepadEvent' in window;
 let factor_x = rangeToFactor(rectJoy.width);
 let factor_y = rangeToFactor(rectJoy.height);
 let posJoy = setCenter(rectJoy);
-let vel = setVelStart();
+setVelStart();
 
 // -- ps3 object for gamepad handling
 let ps3_controller_connected = false;
@@ -35,18 +35,18 @@ if (debug){
 // -------------- Start -------------------------------------
 ctxJoy.lineWidth = 1;
 
-canvasJoy.addEventListener("mousedown", inputStart, false);
-canvasJoy.addEventListener('mousemove', inputMove, false);
-canvasJoy.addEventListener("mouseout", inputOutside, false);
+canvasJoystick.addEventListener("mousedown", inputStart, false);
+canvasJoystick.addEventListener('mousemove', inputMove, false);
+canvasJoystick.addEventListener("mouseout", inputOutside, false);
 if (mUp_globally){
   window.addEventListener('mouseup',inputEnd, false);
-  canvasJoy.addEventListener("mouseup", inputEnd, false);
+  canvasJoystick.addEventListener("mouseup", inputEnd, false);
 }else {
-  canvasJoy.addEventListener("mouseup", inputEnd, false);
+  canvasJoystick.addEventListener("mouseup", inputEnd, false);
 }
-canvasJoy.addEventListener("touchstart", inputStart, false);
-canvasJoy.addEventListener("touchend", inputEnd, false);
-canvasJoy.addEventListener("touchmove", inputMove, false);
+canvasJoystick.addEventListener("touchstart", inputStart, false);
+canvasJoystick.addEventListener("touchend", inputEnd, false);
+canvasJoystick.addEventListener("touchmove", inputMove, false);
 
 inputEnd();
 
@@ -83,8 +83,8 @@ function inputEnd() {
   posJoy = setCenter(rectJoy);
   inputMove({ clientX: posJoy.cx, clientY: posJoy.cy});
   mdown = false;
-  vel.linearX = 0.0;
-  vel.linearY = 0.0;
+  canvasJoystick.linearX = 0.0;
+  canvasJoystick.linearY = 0.0;
   drawJoyField();
 }
 
@@ -114,21 +114,21 @@ function getMousePos(evt) {
 
 function getVel() {
   if (posJoy.cx < rectJoy.width / 2){
-    vel.linearX = Math.round(rectJoy.width / 2 - posJoy.cx);
-    vel.linearX = 0 - vel.linearX;
+    canvasJoystick.linearX = Math.round(rectJoy.width / 2 - posJoy.cx);
+    canvasJoystick.linearX = 0 - canvasJoystick.linearX;
   }else {
-    vel.linearX = Math.round(posJoy.cx - rectJoy.width / 2);
+    canvasJoystick.linearX = Math.round(posJoy.cx - rectJoy.width / 2);
   }
   if (posJoy.cy < rectJoy.height / 2){
-    vel.linearY = Math.round(posJoy.cy - rectJoy.height / 2);
-    vel.linearY = 0 - vel.linearY;
+    canvasJoystick.linearY = Math.round(posJoy.cy - rectJoy.height / 2);
+    canvasJoystick.linearY = 0 - canvasJoystick.linearY;
   }else {
-    vel.linearY = Math.round(rectJoy.height / 2 -posJoy.cy);
+    canvasJoystick.linearY = Math.round(rectJoy.height / 2 -posJoy.cy);
   }
-  if (vel.linearX > rectJoy.width){ vel.linearX = rectJoy.width / 2}
-  if (vel.linearY > rectJoy.height){ vel.linearY = rectJoy.height / 2}
-  vel.linearX = vel.linearX * factor_x;
-  vel.linearY = vel.linearY * factor_y;
+  if (canvasJoystick.linearX > rectJoy.width){ canvasJoystick.linearX = rectJoy.width / 2}
+  if (canvasJoystick.linearY > rectJoy.height){ canvasJoystick.linearY = rectJoy.height / 2}
+  canvasJoystick.linearX = canvasJoystick.linearX * factor_x;
+  canvasJoystick.linearY = canvasJoystick.linearY * factor_y;
 }
 
 /**
@@ -157,11 +157,8 @@ function setCenter(rectJoy){
 }
 
 function setVelStart(){
-  let vel_start = {
-      linearX: posJoy.cx,
-      linearY: posJoy.cy
-  };
-  return vel_start;
+  canvasJoystick.linearX = posJoy.cx; 
+  canvasJoystick.linearY = posJoy.cy;
 }
 
 function sendPos() {
@@ -169,9 +166,9 @@ function sendPos() {
   // console.log('ps3 x:' + ps3_axis_pos_x + ' ps3 y:' + ps3_axis_pos_y);
   // console.log('j cx:' + posJoy.cx + "j cy:" + posJoy.cy)
   if (debug){
-    console.log("v x:" + vel.linearX + ",v Y:" + vel.linearY);  
+    console.log("v x:" + canvasJoystick.linearX + ",v Y:" + canvasJoystick.linearY);
   }
-  
+  /* Example for sending Joystick Position over Websocket
   try { 
     ws.send(JSON.stringify (vel)); 
   } catch (e){
@@ -179,6 +176,7 @@ function sendPos() {
       console.log(e.message);
     }
   }
+  */
 }
 
 // -- ps3 -------------------------------------------------------------------------------------
