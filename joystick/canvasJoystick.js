@@ -48,8 +48,6 @@ canvasJoystick.addEventListener("touchstart", inputStart, false);
 canvasJoystick.addEventListener("touchend", inputEnd, false);
 canvasJoystick.addEventListener("touchmove", inputMove, false);
 
-inputEnd();
-
 function drawJoyField() {
   ctxJoy.clearRect(0, 0, rectJoy.width, rectJoy.height);
   ctxJoy.beginPath();
@@ -86,6 +84,7 @@ function inputEnd() {
   canvasJoystick.linearX = 0.0;
   canvasJoystick.linearY = 0.0;
   drawJoyField();
+  sendPos();
 }
 
 function inputMove(e) {
@@ -168,6 +167,7 @@ function sendPos() {
   if (debug){
     console.log("v x:" + canvasJoystick.linearX + ",v Y:" + canvasJoystick.linearY);
   }
+  showValues();
   /* Example for sending Joystick Position over Websocket
   try { 
     ws.send(JSON.stringify (vel)); 
@@ -281,3 +281,6 @@ if (haveEvents) {
   window.addEventListener("gamepadconnected", connectHandler);
   window.addEventListener("gamepaddisconnected", disconnectHandler);
 }
+
+// start
+inputEnd();
